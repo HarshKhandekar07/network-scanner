@@ -1,0 +1,9 @@
+# Network Scanner Dependencies
+# This project is designed entirely using the Python Standard Library.
+# No external packages are required to run the core scanner or the Tkinter GUI.
+#
+# Requirements:
+# Python >= 3.6
+
+flask>=3.0.0
+

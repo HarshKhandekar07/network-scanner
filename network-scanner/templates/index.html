@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA | Modern Network Scanner Dashboard</title>
+  <meta name="description" content="A premium, dark-themed, real-time network scanner tool. Inspect local subnets, map hostnames, and discover MAC vendors instantly.">
+  
+  <!-- Modern Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-main: #0E0F13;
+      --bg-card: #171821;
+      --bg-input: #1F202B;
+      --border-color: #2D2F3F;
+      --text-primary: #FFFFFF;
+      --text-secondary: #8E9297;
+      --accent-color: #5865F2;      /* Discord Blue */
+      --accent-hover: #4752C4;
+      --success-color: #00C897;     /* Emerald Green */
+      --danger-color: #FF4D4D;      /* Crimson Red */
+      --font-family: 'Inter', sans-serif;
+      --transition-speed: 0.2s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 40px;
+    }
+
+    /* Custom styled scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Container layout */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Header Nav Styling */
+    header {
+      background: rgba(23, 24, 33, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 15px 0;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--accent-color), var(--success-color));
+      border-radius: 6px;
+      position: relative;
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.08); opacity: 1; filter: brightness(1.2); }
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      top: 8px;
+      left: 8px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success-color);
+      box-shadow: 0 0 8px var(--success-color);
+    }
+
+    /* Hero / Intro section */
+    .hero {
+      margin-top: 30px;
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #FFFFFF, var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    /* Controls Panel Card */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      outline: none;
+      transition: border-color var(--transition-speed);
+    }
+
+    .input-wrapper input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15);
+    }
+
+    .btn {
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all var(--transition-speed);
+      height: 46px;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      background-color: var(--border-color);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-value.highlight-green {
+      color: var(--success-color);
+    }
+
+    /* Progress bar layout */
+    .progress-section {
+      margin-bottom: 25px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background-color: var(--bg-input);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+      border-radius: 3px;
+      transition: width 0.3s ease-out;
+    }
+
+    /* Table Container Styling */
+    .table-container {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .table-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1B1D28;
+    }
+
+    .table-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .btn-secondary {
+      background-color: #242635;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      height: 36px;
+      border-radius: 6px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #2D2F43;
+      border-color: var(--text-secondary);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(23, 24, 33, 0.5);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 24px;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background-color var(--transition-speed);
+      animation: fadeInRow 0.35s ease forwards;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(45, 47, 63, 0.25);
+    }
+
+    @keyframes fadeInRow {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 50px 24px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .empty-icon {
+      font-size: 2.2rem;
+      opacity: 0.6;
+    }
+
+    /* Status badge styles */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(0, 200, 151, 0.1);
+      color: var(--success-color);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    /* Footer styling */
+    .scan-status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding: 0 5px;
+    }
+
+    .scan-status-text {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+
+    .loader {
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid rgba(255, 255, 255, 0.15);
+      border-top-color: #FFFFFF;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 600px) {
+      .control-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-primary {
+        width: 100%;
+      }
+      th, td {
+        padding: 10px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- --- NAVIGATION HEADER --- -->
+  <header>
+    <div class="container header-container">
+      <a href="#" class="logo">
+        <div class="logo-icon"></div>
+        AURA SCANNER
+      </a>
+      <div class="system-status">
+        <span class="status-dot"></span>
+        Live Connection
+      </div>
+    </div>
+  </header>
+
+  <!-- --- HERO SECTION --- -->
+  <div class="container hero">
+    <h1>Web-Based Network Scanner</h1>
+    <p>Perform fast parallel ping sweeps, resolve local hostnames, and map device manufacturer vendors dynamically.</p>
+  </div>
+
+  <main class="container">
+    
+    <!-- --- CONTROLS PANEL CARD --- -->
+    <section class="card">
+      <div class="control-row">
+        <div class="form-group">
+          <label for="subnet-target">Scan Target Subnet / IP Range</label>
+          <div class="input-wrapper">
+            <input type="text" id="subnet-target" placeholder="Fetching recommended subnet..." autocomplete="off">
+          </div>
+        </div>
+        <button id="btn-scan" class="btn btn-primary" disabled>
+          <span>Start Scan</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- --- STATS CARDS GRID --- -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-title">Your Local IP</span>
+        <span class="stat-value" id="stat-local-ip">Detecting...</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Devices Detected</span>
+        <span class="stat-value highlight-green" id="stat-devices-count">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Scan Progress</span>
+        <span class="stat-value" id="stat-progress-pct">Idle</span>
+      </div>
+    </section>
+
+    <!-- --- PROGRESS BAR SECTION --- -->
+    <section class="progress-section">
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="scan-progress-bar"></div>
+      </div>
+      <div class="scan-status-indicator">
+        <span class="scan-status-text" id="scan-status-msg">Enter a subnet range and click start.</span>
+      </div>
+    </section>
+
+    <!-- --- RESULTS TABLE --- -->
+    <section class="table-container">
+      <div class="table-header">
+        <h2>Scan Discovered Hosts</h2>
+        <button id="btn-export" class="btn btn-secondary" disabled>Export CSV</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">IP Address</th>
+              <th style="width: 25%;">MAC Address</th>
+              <th style="width: 25%;">Hostname</th>
+              <th style="width: 20%;">Manufacturer Vendor</th>
+              <th style="width: 10%; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Table rows will populate here dynamically -->
+          </tbody>
+        </table>
+        
+        <div class="empty-state" id="table-empty-state">
+          <span class="empty-icon">🔍</span>
+          <p>No active network hosts mapped yet. Start a scan to find devices.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- --- JAVASCRIPT SCAN LOGIC --- -->
+  <script>
+    const subnetInput = document.getElementById('subnet-target');
+    const btnScan = document.getElementById('btn-scan');
+    const btnExport = document.getElementById('btn-export');
+    const statLocalIp = document.getElementById('stat-local-ip');
+    const statDevicesCount = document.getElementById('stat-devices-count');
+    const statProgressPct = document.getElementById('stat-progress-pct');
+    const progressBar = document.getElementById('scan-progress-bar');
+    const statusMsg = document.getElementById('scan-status-msg');
+    const tableBody = document.getElementById('table-body');
+    const emptyState = document.getElementById('table-empty-state');
+
+    let devices = [];
+    let isScanning = false;
+    let sseSource = null;
+
+    // 1. Fetch system details (Local IP and default Subnet) upon loading
+    async function loadSystemInfo() {
+      try {
+        const response = await fetch('/api/info');
+        const data = await response.json();
+        if (data.status === 'success') {
+          statLocalIp.innerText = data.local_ip;
+          subnetInput.value = data.default_subnet;
+          btnScan.disabled = false;
+        } else {
+          statusMsg.innerText = 'Error loading local IP configs.';
+          subnetInput.value = '192.168.1.0/24';
+          btnScan.disabled = false;
+        }
+      } catch (err) {
+        console.error('Failed to query info API:', err);
+        statLocalIp.innerText = 'Unknown';
+        subnetInput.value = '192.168.1.0/24';
+        btnScan.disabled = false;
+      }
+    }
+
+    // Add a device row to the DOM table
+    function appendDeviceToTable(device) {
+      emptyState.style.display = 'none';
+
+      const tr = document.createElement('tr');
+      
+      const tdIp = document.createElement('td');
+      tdIp.style.fontWeight = '600';
+      tdIp.innerText = device.ip;
+
+      const tdMac = document.createElement('td');
+      tdMac.style.fontFamily = 'monospace';
+      tdMac.innerText = device.mac;
+
+      const tdHostname = document.createElement('td');
+      tdHostname.innerText = device.hostname || 'Unknown';
+
+      const tdVendor = document.createElement('td');
+      tdVendor.innerText = device.vendor || 'Unknown';
+
+      const tdStatus = document.createElement('td');
+      tdStatus.style.textAlign = 'center';
+      
+      const badge = document.createElement('span');
+      badge.className = 'status-badge';
+      badge.innerHTML = '<span style="width: 5px; height: 5px; border-radius: 50%; background-color: var(--success-color); display: inline-block;"></span> Active';
+      tdStatus.appendChild(badge);
+
+      tr.appendChild(tdIp);
+      tr.appendChild(tdMac);
+      tr.appendChild(tdHostname);
+      tr.appendChild(tdVendor);
+      tr.appendChild(tdStatus);
+
+      tableBody.appendChild(tr);
+    }
+
+    // 2. Scan Network using Server-Sent Events (SSE)
+    function startNetworkScan() {
+      const target = subnetInput.value.trim();
+      if (!target) {
+        alert('Please specify a target subnet or range.');
+        return;
+      }
+
+      // Reset frontend state
+      isScanning = true;
+      devices = [];
+      tableBody.innerHTML = '';
+      emptyState.style.display = 'flex';
+      btnScan.disabled = true;
+      btnScan.innerHTML = '<span class="loader"></span> <span>Scanning...</span>';
+      btnExport.disabled = true;
+
+      statDevicesCount.innerText = '0';
+      statProgressPct.innerText = '0%';
+      progressBar.style.width = '0%';
+      statusMsg.innerText = 'Establishing server-side listener...';
+      statusMsg.style.color = 'var(--text-secondary)';
+
+      // Establish SSE connection
+      const sseUrl = `/api/scan/stream?target=${encodeURIComponent(target)}`;
+      sseSource = new EventSource(sseUrl);
+
+      // Listen for progress updates
+      sseSource.addEventListener('progress', (e) => {
+        const data = JSON.parse(e.data);
+        const scanned = data.scanned;
+        const total = data.total;
+        const percentage = data.percentage;
+        const currentDevice = data.current_device;
+
+        // Update progress visual indicators
+        progressBar.style.width = `${percentage}%`;
+        statProgressPct.innerText = `${percentage}%`;
+        statusMsg.innerText = `Scanning: Analyzing IP range (${scanned}/${total} pings completed)...`;
+
+        // If an active device is found, display it instantly
+        if (currentDevice) {
+          devices.push(currentDevice);
+          appendDeviceToTable(currentDevice);
+          statDevicesCount.innerText = devices.length;
+        }
+      });
+
+      // Listen for completed scan
+      sseSource.addEventListener('complete', (e) => {
+        const finalResults = JSON.parse(e.data);
+        closeSSE();
+        
+        progressBar.style.width = '100%';
+        statProgressPct.innerText = 'Finished';
+        statusMsg.innerText = `Scan complete. Discovered ${devices.length} active device(s) on the subnet.`;
+        statusMsg.style.color = 'var(--success-color)';
+
+        btnScan.disabled = false;
+        btnScan.innerHTML = '<span>Start Scan</span>';
+
+        if (devices.length > 0) {
+          btnExport.disabled = false;
+        }
+      });
+
+      // Listen for errors
+      sseSource.addEventListener('error', (e) => {
+        let msg = 'An unexpected server error occurred.';
+        try {
+          if (e.data) {
+            const data = JSON.parse(e.data);
+            msg = data.message || msg;
+          }
+        } catch(err) {}
+        
+        closeSSE();
+        statusMsg.innerText = `Scan failed: ${msg}`;
+        statusMsg.style.color = 'var(--danger-color)';
+        statProgressPct.innerText = 'Failed';
+        progressBar.style.width = '0%';
+
+        btnScan.disabled = false;
+        btnScan.innerHTML = '<span>Start Scan</span>';
+      });
+    }
+
+    function closeSSE() {
+      if (sseSource) {
+        sseSource.close();
+        sseSource = null;
+      }
+      isScanning = false;
+    }
+
+    // 3. Export CSV using pure client-side downloader (extremely fast and lightweight)
+    function exportResultsToCSV() {
+      if (devices.length === 0) return;
+
+      const headers = ["IP Address", "MAC Address", "Hostname", "Vendor"];
+      let csvContent = "data:text/csv;charset=utf-8," 
+        + headers.join(",") + "\n"
+        + devices.map(d => `"${d.ip}","${d.mac}","${d.hostname || 'Unknown'}","${d.vendor || 'Unknown'}"`).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      
+      const cleanSubnet = subnetInput.value.replace(/[\/\.-]/g, '_');
+      link.setAttribute("download", `network_scan_${cleanSubnet}.csv`);
+      document.body.appendChild(link);
+      
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Wire up UI events
+    btnScan.addEventListener('click', () => {
+      if (!isScanning) {
+        startNetworkScan();
+      }
+    });
+
+    btnExport.addEventListener('click', () => {
+      exportResultsToCSV();
+    });
+
+    // Enter key triggers scan in target input
+    subnetInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !btnScan.disabled) {
+        startNetworkScan();
+      }
+    });
+
+    // Run system details detection on startup
+    window.addEventListener('DOMContentLoaded', loadSystemInfo);
+  </script>
+</body>
+</html>
